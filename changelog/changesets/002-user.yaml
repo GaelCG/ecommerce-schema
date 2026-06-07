@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-users
+      author: gael
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone
+                  type: VARCHAR(50)
+              - column:
+                  name: role
+                  type: role
+                  defaultValue: CUSTOMER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TRIGGER update_users_updated_at
+                BEFORE UPDATE ON users
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+      rollback:
+        - sql:
+            sql: DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+        - dropTable:
+            tableName: users

@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-create-payments
+      author: gael
+      changes:
+        - createTable:
+            tableName: payments
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: order_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: method
+                  type: payment_method
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: payment_status
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: transaction_id
+                  type: VARCHAR(255)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: payments
+            baseColumnNames: order_id
+            constraintName: fk_payment_order
+            referencedTableName: orders
+            referencedColumnNames: id
+            onDelete: RESTRICT
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TRIGGER update_payments_updated_at
+                BEFORE UPDATE ON payments
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+      rollback:
+        - sql:
+            sql: DROP TRIGGER IF EXISTS update_payments_updated_at ON payments;
+        - dropTable:
+            tableName: payments
