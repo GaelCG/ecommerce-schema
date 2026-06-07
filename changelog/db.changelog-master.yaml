@@ -29,3 +29,6 @@ databaseChangeLog:
   - include:
       file: changesets/010-review.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/011-coupon.yaml
+      relativeToChangelogFile: true
