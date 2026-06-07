@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-inventories
+      author: gael
+      changes:
+        - createTable:
+            tableName: inventories
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: stock
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: inventories
+            baseColumnNames: product_id
+            constraintName: fk_inventory_product
+            referencedTableName: products
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE TRIGGER update_inventories_updated_at
+                BEFORE UPDATE ON inventories
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+      rollback:
+        - sql:
+            sql: DROP TRIGGER IF EXISTS update_inventories_updated_at ON inventories;
+        - dropTable:
+            tableName: inventories

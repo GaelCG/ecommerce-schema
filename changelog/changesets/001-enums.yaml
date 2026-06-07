@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-enums
+      author: gael
+      changes:
+        - sql:
+            sql: |
+              CREATE TYPE role AS ENUM ('CUSTOMER', 'ADMIN', 'SELLER');
+              CREATE TYPE order_status AS ENUM ('PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED');
+              CREATE TYPE payment_status AS ENUM ('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED');
+              CREATE TYPE payment_method AS ENUM ('CREDIT_CARD', 'DEBIT_CARD', 'PAYPAL', 'BANK_TRANSFER');
+      rollback:
+        - sql:
+            sql: |
+              DROP TYPE IF EXISTS payment_method;
+              DROP TYPE IF EXISTS payment_status;
+              DROP TYPE IF EXISTS order_status;
+              DROP TYPE IF EXISTS role;
+
+  - changeSet:
+      id: 001-create-updated-at-function
+      author: gael
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION update_updated_at_column()
+              RETURNS TRIGGER AS $$
+              BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+              END;
+              $$ language 'plpgsql';
+      rollback:
+        - sql:
+            sql: DROP FUNCTION IF EXISTS update_updated_at_column();

@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-categories
+      author: gael
+      changes:
+        - createTable:
+            tableName: categories
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: parent_id
+                  type: UUID
+        - addForeignKeyConstraint:
+            baseTableName: categories
+            baseColumnNames: parent_id
+            constraintName: fk_category_parent
+            referencedTableName: categories
+            referencedColumnNames: id
+            onDelete: SET NULL
+      rollback:
+        - dropTable:
+            tableName: categories
